@@ -1,0 +1,4 @@
+rasa
+wandb
+scrapy
+elasticsearch
