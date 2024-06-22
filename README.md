@@ -175,3 +175,9 @@ Weights & Biases (W&B) is used for experiment tracking, model evaluation, and hy
 ## License
 
 This project is licensed under the Apache-2.0 License. See the [LICENSE](LICENSE) file for details.
+
+## Apendix
+
+1. **Rasa Open-source**: https://rasa.com/docs/rasa/
+2. **Elasticsearch**: https://github.com/elastic/elasticsearch
+3. **Weight & Biases**: https://docs.wandb.ai/
