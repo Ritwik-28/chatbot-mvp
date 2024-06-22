@@ -1,0 +1,10 @@
+# Ignore the output JSON file created by the spider
+company_data.json
+
+# Other files and directories to be ignored
+*.log
+*.tmp
+*.bak
+__pycache__/
+*.pyc
+.DS_Store
