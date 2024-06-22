@@ -1,0 +1,72 @@
+version: "2.0"
+intents:
+  - greet
+  - provide_details
+  - ask_about_courses
+  - software_development_interest
+  - qa_automation_interest
+  - profanity
+  - pass_to_human
+
+entities:
+  - name
+  - email
+  - phone_number
+
+slots:
+  name:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_entity
+        entity: name
+  email:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_entity
+        entity: email
+  phone_number:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_entity
+        entity: phone_number
+
+responses:
+  utter_greet:
+    - text: "Hello! Welcome to our site. Can I know your name, email, and phone number?"
+
+  utter_ask_about_courses:
+    - text: "We offer courses on Software Development and QA Automation. Which one are you interested in?"
+
+  utter_software_development_interest:
+    - text: "Our Software Development course covers..."
+
+  utter_qa_automation_interest:
+    - text: "Our QA Automation course covers..."
+
+  utter_profanity:
+    - text: "I'm here to help with any questions about our company. Please refrain from using inappropriate language."
+
+  utter_pass_to_human:
+    - text: "Sure, I will pass you to a human agent. Please wait a moment."
+
+  utter_thank_you:
+    - text: "Thank you for providing your details. How can I assist you further?"
+
+forms:
+  lead_form:
+    required_slots:
+      name:
+        - entity: name
+      email:
+        - entity: email
+      phone_number:
+        - entity: phone_number
+
+actions:
+  - action_set_profile
+  - action_query_elasticsearch
+  - action_detect_profanity
+  - action_scrape_website
