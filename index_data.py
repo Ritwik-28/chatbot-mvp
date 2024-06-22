@@ -1,6 +1,7 @@
 from elasticsearch import Elasticsearch, helpers
 import json
 
+# Connect to Elasticsearch
 es = Elasticsearch(['http://localhost:9200'])
 
 def load_data():
@@ -12,11 +13,9 @@ def index_data(data):
     actions = [
         {
             "_index": "company_data",
-            "_type": "_doc",
-            "_id": i,
-            "_source": data[i]
+            "_source": record
         }
-        for i in range(len(data))
+        for record in data
     ]
     helpers.bulk(es, actions)
 
