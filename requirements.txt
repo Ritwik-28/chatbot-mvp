@@ -1,4 +1,4 @@
 rasa
 wandb
 scrapy
-elasticsearch
+neo4j

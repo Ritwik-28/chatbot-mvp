@@ -18,18 +18,15 @@ def load_data(file_path, neo4j_conn):
         data = json.load(file)
         for entry in data:
             query = (
-                "CREATE (n:Company {name: $name, description: $description, "
-                "link: $link, course: $course})"
+                "CREATE (n:Company {title: $title, body: $body})"
             )
             parameters = {
-                "name": entry.get("name"),
-                "description": entry.get("description"),
-                "link": entry.get("link"),
-                "course": entry.get("course")
+                "title": entry.get("title"),
+                "body": " ".join(entry.get("body"))
             }
             neo4j_conn.query(query, parameters)
 
 if __name__ == "__main__":
-    neo4j_conn = Neo4jConnection("bolt://neo4j:7687", "neo4j", "test")
+    neo4j_conn = Neo4jConnection("bolt://localhost:7687", "neo4j", "test")
     load_data('company_data.json', neo4j_conn)
     neo4j_conn.close()
