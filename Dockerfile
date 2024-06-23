@@ -19,8 +19,8 @@ RUN pip install wandb
 # Install Scrapy for website scraping
 RUN pip install scrapy
 
-# Install Elasticsearch client
-RUN pip install elasticsearch
+# Install Neo4j driver
+RUN pip install neo4j
 
 # Install Docker client and curl
 RUN apt-get update && apt-get install -y docker.io curl
