@@ -1,24 +1,35 @@
-from elasticsearch import Elasticsearch, helpers
 import json
+from neo4j import GraphDatabase
 
-# Connect to Elasticsearch
-es = Elasticsearch(['http://localhost:9200'])
+class Neo4jConnection:
+    def __init__(self, uri, user, password):
+        self._driver = GraphDatabase.driver(uri, auth=(user, password))
 
-def load_data():
-    with open('company_data.json') as f:
-        data = json.load(f)
-    return data
+    def close(self):
+        self._driver.close()
 
-def index_data(data):
-    actions = [
-        {
-            "_index": "company_data",
-            "_source": record
-        }
-        for record in data
-    ]
-    helpers.bulk(es, actions)
+    def query(self, query, parameters=None):
+        with self._driver.session() as session:
+            result = session.run(query, parameters)
+            return [record for record in result]
+
+def load_data(file_path, neo4j_conn):
+    with open(file_path, 'r') as file:
+        data = json.load(file)
+        for entry in data:
+            query = (
+                "CREATE (n:Company {name: $name, description: $description, "
+                "link: $link, course: $course})"
+            )
+            parameters = {
+                "name": entry.get("name"),
+                "description": entry.get("description"),
+                "link": entry.get("link"),
+                "course": entry.get("course")
+            }
+            neo4j_conn.query(query, parameters)
 
 if __name__ == "__main__":
-    data = load_data()
-    index_data(data)
+    neo4j_conn = Neo4jConnection("bolt://neo4j:7687", "neo4j", "test")
+    load_data('company_data.json', neo4j_conn)
+    neo4j_conn.close()

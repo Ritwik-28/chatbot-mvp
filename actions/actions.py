@@ -2,7 +2,7 @@ import requests
 from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
 from rasa_sdk.events import SlotSet
-from elasticsearch import Elasticsearch
+from neo4j import GraphDatabase
 import wandb
 import scrapy
 from scrapy.crawler import CrawlerProcess
@@ -11,8 +11,20 @@ import json
 # Initialize W&B
 wandb.init(project="rasa-chatbot", entity="ritwikgupta28")
 
-# Elasticsearch setup
-es = Elasticsearch(['http://elasticsearch:9200'])
+# Neo4j setup
+class Neo4jConnection:
+    def __init__(self, uri, user, password):
+        self._driver = GraphDatabase.driver(uri, auth=(user, password))
+
+    def close(self):
+        self._driver.close()
+
+    def query(self, query, parameters=None):
+        with self._driver.session() as session:
+            result = session.run(query, parameters)
+            return [record for record in result]
+
+neo4j_conn = Neo4jConnection("bolt://neo4j:7687", "neo4j", "test")
 
 class ActionSetProfile(Action):
     def name(self) -> str:
@@ -25,23 +37,21 @@ class ActionSetProfile(Action):
         email = tracker.get_slot("email")
         phone_number = tracker.get_slot("phone_number")
         profile = f"Name: {name}, Email: {email}, Phone Number: {phone_number}"
-        # Save profile to the backend
         dispatcher.utter_message(text=f"Profile set for {name}. How can I assist you further?")
         return [SlotSet("user_profile", profile)]
 
-class ActionQueryElasticsearch(Action):
+class ActionQueryNeo4j(Action):
     def name(self) -> str:
-        return "action_query_elasticsearch"
+        return "action_query_neo4j"
 
     def run(self, dispatcher: CollectingDispatcher,
             tracker: Tracker,
             domain: dict) -> list:
         query = tracker.latest_message.get('text')
-        response = es.search(index="company_data", body={"query": {"match": {"content": query}}})
-        hits = response['hits']['hits']
-        if hits:
-            answer = hits[0]['_source']['content']
-            dispatcher.utter_message(text=answer)
+        cypher_query = f"MATCH (n:Company) WHERE n.title CONTAINS '{query}' RETURN n"
+        result = neo4j_conn.query(cypher_query)
+        if result:
+            dispatcher.utter_message(text=str(result))
         else:
             dispatcher.utter_message(text="Sorry, I couldn't find any information on that topic.")
         return []
@@ -54,9 +64,7 @@ class ActionDetectProfanity(Action):
             tracker: Tracker,
             domain: dict) -> list:
         user_message = tracker.latest_message.get('text')
-        # Here you can use a profanity detection library or API
-        # For demonstration, let's assume a simple check
-        if "profane" in user_message:  # Simple check for demonstration
+        if "profane" in user_message:
             dispatcher.utter_message(response="utter_profanity")
             return []
         return []
@@ -91,28 +99,25 @@ class ActionScrapeWebsite(Action):
         })
 
         process.crawl(CrioSpider)
-        process.start()  # the script will block here until the crawling is finished
+        process.start()
 
-        # Once crawling is done, index the data
-        def load_data():
-            with open('company_data.json') as f:
-                data = json.load(f)
-            return data
+        def load_data(file_path):
+            with open(file_path) as f:
+                return json.load(f)
 
-        def index_data(data):
-            actions = [
-                {
-                    "_index": "company_data",
-                    "_type": "_doc",
-                    "_id": i,
-                    "_source": data[i]
+        def index_data(neo4j_conn, data):
+            for entry in data:
+                query = (
+                    "CREATE (n:Company {title: $title, body: $body})"
+                )
+                parameters = {
+                    "title": entry.get("title"),
+                    "body": " ".join(entry.get("body"))
                 }
-                for i in range(len(data))
-            ]
-            helpers.bulk(es, actions)
+                neo4j_conn.query(query, parameters)
 
-        data = load_data()
-        index_data(data)
+        data = load_data('company_data.json')
+        index_data(neo4j_conn, data)
 
         dispatcher.utter_message(text="Website data has been scraped and indexed.")
         return []
