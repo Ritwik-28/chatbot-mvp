@@ -198,7 +198,7 @@ Weights & Biases (W&B) is used for experiment tracking, model evaluation, and hy
 
 1. **Dockerfile**: Defines the environment setup for Rasa, including installation of required packages and running the Rasa server.
 
-2. **docker-compose.yml**: Configures multiple services including Rasa, the action server, and Elasticsearch.
+2. **docker-compose.yml**: Configures multiple services including Rasa, the action server, and Neo4j.
 
 3. **requirements.txt**: Lists all the Python dependencies for the project.
 
@@ -208,7 +208,7 @@ Weights & Biases (W&B) is used for experiment tracking, model evaluation, and hy
 
 6. **domain.yml**: Defines the structure of the chatbot, including intents, entities, slots, responses, forms, and actions.
 
-7. **actions.py**: Contains custom actions for the chatbot, including interaction with Elasticsearch and handling user profiles.
+7. **actions.py**: Contains custom actions for the chatbot, including interaction with Neo4j and handling user profiles.
 
 ### Frontend
 
@@ -229,5 +229,5 @@ This project is licensed under the Apache-2.0 License. See the [LICENSE](LICENSE
 ## Apendix
 
 1. **Rasa Open-source**: https://rasa.com/docs/rasa/
-2. **Elasticsearch**: https://github.com/elastic/elasticsearch
+2. **Neo4j**: https://github.com/neo4j/neo4j
 3. **Weight & Biases**: https://docs.wandb.ai/
