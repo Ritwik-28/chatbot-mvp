@@ -128,9 +128,59 @@ npm start
 docker-compose up --build
 ```
 
-2. **Interact with the Chatbot**:
+2. **Send Data to Neo4j**
 
-Navigate to `http://localhost:3000` in your browser to interact with the chatbot.
+```bash
+python index_data.py
+```
+
+3. **Update Rasa**
+
+* **Step 1:** Stop Rasa Server
+
+If the Rasa server is already running, stop it by pressing Ctrl+C in the terminal where it is running.
+
+* **Step 2:** Train Rasa Model
+
+Train the Rasa model with any new or updated data:
+
+```bash
+rasa train
+```
+
+This command will train the NLU and Core models based on the data defined in the data/ directory.
+
+4. **Start Rasa Server**
+
+Start the Rasa server again to use the updated model:
+
+```bash
+rasa run --enable-api --cors "*"
+```
+
+5. **Start Action Server**
+
+In a separate terminal, start the action server:
+
+```bash
+rasa run actions
+```
+
+To get the Weight & Biases Authentication key vist: https://wandb.ai/authorize
+
+6. **Interact with the Chatbot**:
+
+In a seprate terminal, enter the chatbot-frontend directory:
+
+```bash
+cd chatbot-frontend
+```
+
+Build React Application:
+
+```bash
+npm start
+```
 
 ## Importance of Weights & Biases (W&B)
 
