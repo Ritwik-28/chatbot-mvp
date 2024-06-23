@@ -24,7 +24,7 @@ class Neo4jConnection:
             result = session.run(query, parameters)
             return [record for record in result]
 
-neo4j_conn = Neo4jConnection("bolt://neo4j:7687", "neo4j", "test")
+neo4j_conn = Neo4jConnection("bolt://neo4j:7687", "neo4j", "qWeRtY2*")
 
 class ActionSetProfile(Action):
     def name(self) -> str:

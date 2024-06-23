@@ -27,6 +27,6 @@ def load_data(file_path, neo4j_conn):
             neo4j_conn.query(query, parameters)
 
 if __name__ == "__main__":
-    neo4j_conn = Neo4jConnection("bolt://localhost:7687", "neo4j", "test")
+    neo4j_conn = Neo4jConnection("bolt://localhost:7687", "neo4j", "qWeRtY2*")
     load_data('company_data.json', neo4j_conn)
     neo4j_conn.close()
