@@ -1,12 +1,10 @@
-import requests
+import os
+import json
 from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
 from rasa_sdk.events import SlotSet
 from neo4j import GraphDatabase
 import wandb
-import scrapy
-from scrapy.crawler import CrawlerProcess
-import json
 
 # Initialize W&B
 wandb.init(project="rasa-chatbot", entity="ritwikgupta28")
@@ -68,39 +66,27 @@ class ActionDetectProfanity(Action):
         if "profane" in user_message:
             dispatcher.utter_message(response="utter_profanity")
             return []
-        return []
 
-class ActionScrapeWebsite(Action):
+class ActionSaveConversation(Action):
     def name(self) -> str:
-        return "action_scrape_website"
+        return "action_save_conversation"
 
     def run(self, dispatcher: CollectingDispatcher,
             tracker: Tracker,
             domain: dict) -> list:
-
-        class CrioSpider(scrapy.Spider):
-            name = "crio_spider"
-            allowed_domains = ["crio.do"]
-            start_urls = ["https://www.crio.do/"]
-
-            def parse(self, response):
-                for content in response.css('div.content'):
-                    yield {
-                        'title': content.css('h1::text').get(),
-                        'body': content.css('p::text').getall(),
-                    }
-
-                for next_page in response.css('a.next'):
-                    yield response.follow(next_page, self.parse)
-
-        process = CrawlerProcess(settings={
-            "FEEDS": {
-                "company_data.json": {"format": "json"},
-            },
-        })
-
-        process.crawl(CrioSpider)
-        process.start()
-
-        dispatcher.utter_message(text="Website data has been scraped and saved to 'company_data.json'.")
+        name = tracker.get_slot("name")
+        if name:
+            directory = "User_Conversations"
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+            file_path = os.path.join(directory, f"{name}.json")
+            save_conversation(tracker, file_path)
+            dispatcher.utter_message(text="Your conversation has been saved.")
+        else:
+            dispatcher.utter_message(text="Name not provided. Cannot save conversation.")
         return []
+
+def save_conversation(tracker, file_path):
+    conversation = tracker.events
+    with open(file_path, 'w') as f:
+        json.dump(conversation, f, indent=4)

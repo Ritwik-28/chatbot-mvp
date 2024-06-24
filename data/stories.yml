@@ -43,3 +43,12 @@ stories:
   - action: utter_you_are_welcome
   - intent: goodbye
   - action: utter_goodbye
+
+- story: Save conversation story
+  steps:
+  - intent: greet
+  - action: utter_greet
+  - action: lead_form
+  - active_loop: null
+  - action: action_save_conversation
+  - action: utter_goodbye
