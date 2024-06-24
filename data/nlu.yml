@@ -1,39 +1,81 @@
-version: "2.0"
+version: "3.0"
 nlu:
 - intent: greet
   examples: |
     - hello
     - hi
     - hey
+    - good morning
+    - good evening
+    - hey there
+    - Ssup
 
-- intent: provide_details
+- intent: capture_name
   examples: |
-    - My name is [John Doe](name) and my email is [john@example.com](email)
-    - I am [Jane](name). My phone number is [1234567890](phone_number)
+    - My name is [John](name)
+    - I am [John](name)
+    - It's [John](name)
+    - I am called [John](name)
+    - [John](name)
 
-- intent: ask_about_courses
+- intent: capture_email
   examples: |
-    - Tell me about your courses
-    - What programs do you offer?
-    - I want to know more about your QA Automation course
+    - My email is [john.doe@example.com](email)
+    - You can reach me at [john.doe@example.com](email)
+    - It's [john.doe@example.com](email)
+    - [john.doe@example.com](email)
 
-- intent: software_development_interest
+- intent: capture_phone
   examples: |
-    - I am interested in software development
-    - Tell me more about software development courses
+    - My phone number is [1234567890](phone)
+    - You can call me at [1234567890](phone)
+    - It's [1234567890](phone)
+    - [1234567890](phone)
 
-- intent: qa_automation_interest
+- intent: inquire_interest
   examples: |
-    - I want to learn QA Automation
-    - Can you explain your QA Automation program?
+    - I am interested in QA Automation
+    - I am looking for courses in Software Development
+    - QA Automation
+    - Software Development
+
+- intent: ask_course_details
+  examples: |
+    - Tell me about the QA Automation course
+    - Can you provide details about Software Development course?
+    - What is the pricing for QA Automation?
+    - How long is the Software Development course?
+    - What are the topics covered in QA Automation?
 
 - intent: profanity
   examples: |
+    - This is bullshit
     - You are stupid
-    - This is dumb
-    - What the hell
+    - Damn it
+    - Fuck you
+    - Fuck off
+    - Bitch
 
-- intent: pass_to_human
+- intent: ask_human
   examples: |
-    - I want to talk to a human agent
-    - Can I speak to someone?
+    - I want to talk to a human
+    - Can I speak with a real person?
+    - I need human assistance
+    - Can you connect me to an agent?
+
+- intent: thank_you
+  examples: |
+    - Thanks
+    - Thank you
+    - I appreciate it
+    - Great, thanks
+    - Thanks a lot
+
+- intent: goodbye
+  examples: |
+    - Bye
+    - Goodbye
+    - See you later
+    - Talk to you soon
+    - Bye bye
+    - Tata

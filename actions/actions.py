@@ -51,7 +51,8 @@ class ActionQueryNeo4j(Action):
         cypher_query = f"MATCH (n:Company) WHERE n.title CONTAINS '{query}' RETURN n"
         result = neo4j_conn.query(cypher_query)
         if result:
-            dispatcher.utter_message(text=str(result))
+            result_text = "\n".join([str(record["n"]) for record in result])
+            dispatcher.utter_message(text=result_text)
         else:
             dispatcher.utter_message(text="Sorry, I couldn't find any information on that topic.")
         return []
@@ -101,23 +102,5 @@ class ActionScrapeWebsite(Action):
         process.crawl(CrioSpider)
         process.start()
 
-        def load_data(file_path):
-            with open(file_path) as f:
-                return json.load(f)
-
-        def index_data(neo4j_conn, data):
-            for entry in data:
-                query = (
-                    "CREATE (n:Company {title: $title, body: $body})"
-                )
-                parameters = {
-                    "title": entry.get("title"),
-                    "body": " ".join(entry.get("body"))
-                }
-                neo4j_conn.query(query, parameters)
-
-        data = load_data('company_data.json')
-        index_data(neo4j_conn, data)
-
-        dispatcher.utter_message(text="Website data has been scraped and indexed.")
+        dispatcher.utter_message(text="Website data has been scraped and saved to 'company_data.json'.")
         return []
