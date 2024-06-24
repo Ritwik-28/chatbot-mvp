@@ -21,12 +21,24 @@ entities:
 slots:
   name:
     type: text
+    mappings:
+      - type: from_entity
+        entity: name
   email:
     type: text
+    mappings:
+      - type: from_entity
+        entity: email
   phone_number:
     type: text
+    mappings:
+      - type: from_entity
+        entity: phone
   interest:
     type: text
+    mappings:
+      - type: from_entity
+        entity: interest
   user_profile:
     type: text
 
