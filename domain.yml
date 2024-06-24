@@ -1,4 +1,4 @@
-version: "3.0"
+version: "3.1"
 
 intents:
   - greet
@@ -41,6 +41,8 @@ slots:
         entity: interest
   user_profile:
     type: text
+    mappings:
+      - type: from_text
 
 responses:
   utter_greet:
