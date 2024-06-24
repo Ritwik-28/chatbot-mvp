@@ -40,9 +40,9 @@ slots:
       - type: from_entity
         entity: interest
   user_profile:
-    type: text
+    type: any
     mappings:
-      - type: from_text
+      - type: custom
 
 responses:
   utter_greet:
@@ -65,18 +65,20 @@ responses:
 forms:
   lead_form:
     required_slots:
-      name:
-        - type: from_entity
-          entity: name
-      email:
-        - type: from_entity
-          entity: email
-      phone_number:
-        - type: from_entity
-          entity: phone
+      - name
+      - email
+      - phone_number
+      - interest
 
 actions:
   - action_set_profile
   - action_query_neo4j
   - action_detect_profanity
   - action_save_conversation
+
+session_config:
+  session_expiration_time: 60  # value in minutes
+  carry_over_slots_to_new_session: true
+
+config:
+  store_entities_as_slots: true
