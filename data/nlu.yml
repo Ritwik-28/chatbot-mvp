@@ -1,81 +1,107 @@
 version: "3.1"
+
 nlu:
 - intent: greet
   examples: |
+    - hey
     - hello
     - hi
-    - hey
     - good morning
     - good evening
     - hey there
-    - Ssup
 
-- intent: capture_name
+- intent: goodbye
   examples: |
-    - My name is [John](name)
-    - I am [John](name)
-    - It's [John](name)
-    - I am called [John](name)
-    - [John](name)
+    - bye
+    - goodbye
+    - see you around
+    - see you later
 
-- intent: capture_email
+- intent: want_upskill
   examples: |
-    - My email is [john.doe@example.com](email)
-    - You can reach me at [john.doe@example.com](email)
-    - It's [john.doe@example.com](email)
-    - [john.doe@example.com](email)
+    - I want to upskill
+    - I'm looking to improve my skills
+    - I need to learn new things
+    - I want to advance my career
 
-- intent: capture_phone
+- intent: looking_for_job
   examples: |
-    - My phone number is [1234567890](phone)
-    - You can call me at [1234567890](phone)
-    - It's [1234567890](phone)
-    - [1234567890](phone)
+    - I'm looking for a job
+    - I need a new job
+    - I want to change my career
+    - I'm job hunting
 
-- intent: inquire_interest
+- intent: cwp
   examples: |
-    - I am interested in QA Automation
-    - I am looking for courses in Software Development
-    - QA Automation
-    - Software Development
+    - I'm currently working
+    - I have a job right now
+    - I'm employed
 
-- intent: ask_course_details
+- intent: nwp
   examples: |
-    - Tell me about the QA Automation course
-    - Can you provide details about Software Development course?
-    - What is the pricing for QA Automation?
-    - How long is the Software Development course?
-    - What are the topics covered in QA Automation?
+    - I'm not working right now
+    - I'm unemployed
+    - I don't have a job at the moment
+
+- intent: student
+  examples: |
+    - I'm a student
+    - I'm studying right now
+    - I'm in college
+
+- intent: interest_qa_automation
+  examples: |
+    - I'm interested in QA Automation
+    - QA Automation sounds good
+    - Tell me about QA Automation
+
+- intent: interest_software_development
+  examples: |
+    - I want to learn about Software Development
+    - Software Development interests me
+    - Tell me about Software Development
+
+- intent: curriculum_info
+  examples: |
+    - What's in the curriculum?
+    - Tell me about the course content
+    - What will I learn?
+
+- intent: career_info
+  examples: |
+    - What are the career opportunities?
+    - Where can I work after this?
+    - What jobs can I get?
 
 - intent: profanity
   examples: |
-    - This is bullshit
-    - You are stupid
+    - This is crap
     - Damn it
-    - Fuck you
-    - Fuck off
-    - Bitch
+    - What the hell
 
 - intent: ask_human
   examples: |
-    - I want to talk to a human
-    - Can I speak with a real person?
+    - Can I talk to a human?
     - I need human assistance
-    - Can you connect me to an agent?
+    - Can you hand me over to a person?
 
 - intent: thank_you
   examples: |
     - Thanks
     - Thank you
     - I appreciate it
-    - Great, thanks
-    - Thanks a lot
 
-- intent: goodbye
+- regex: email
   examples: |
-    - Bye
-    - Goodbye
-    - See you later
-    - Talk to you soon
-    - Bye bye
-    - Tata
+    - [A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}
+
+- regex: phone
+  examples: |
+    - \+?1?\d{9,15}
+
+- lookup: degree
+  examples: |
+    - Bachelor's
+    - Master's
+    - PhD
+    - Associate's

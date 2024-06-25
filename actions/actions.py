@@ -1,13 +1,19 @@
-import os
-import json
 import re
+import wandb
 from typing import Any, Text, Dict, List
 from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
 from rasa_sdk.events import SlotSet, FollowupAction
 from neo4j import GraphDatabase
 
+# Initialize wandb
+wandb.init(project="rasa-chatbot", entity="ritwikgupta28")
+
 # Neo4j setup
+neo4j_uri = "bolt://localhost:7687"
+neo4j_user = "neo4j"
+neo4j_password = "qWeRtY2*"
+
 class Neo4jConnection:
     def __init__(self, uri, user, password):
         self._driver = GraphDatabase.driver(uri, auth=(user, password))
@@ -20,7 +26,7 @@ class Neo4jConnection:
             result = session.run(query, parameters)
             return [record for record in result]
 
-neo4j_conn = Neo4jConnection("bolt://neo4j:7687", "neo4j", "qWeRtY2*")
+neo4j_conn = Neo4jConnection(neo4j_uri, neo4j_user, neo4j_password)
 
 class ActionGreetAndLead(Action):
     def name(self) -> Text:
@@ -29,109 +35,230 @@ class ActionGreetAndLead(Action):
     def run(self, dispatcher: CollectingDispatcher,
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-        # Check if user profile exists
-        user_profile = tracker.get_slot("user_profile")
-        if user_profile:
-            dispatcher.utter_message(response="utter_greet")
-            dispatcher.utter_message(text=f"Welcome back! I remember you from our previous conversation.")
-            return []
-        else:
-            dispatcher.utter_message(response="utter_greet")
-            dispatcher.utter_message(text="I'd like to learn more about you. May I ask you a few questions?")
-            return [FollowupAction("lead_form")]
-
-class ActionSetProfile(Action):
-    def name(self) -> Text:
-        return "action_set_profile"
-
-    def run(self, dispatcher: CollectingDispatcher,
-            tracker: Tracker,
-            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-        name = tracker.get_slot("name")
-        email = tracker.get_slot("email")
-        phone_number = tracker.get_slot("phone_number")
-        interest = tracker.get_slot("interest")
-        
-        profile = {
-            "name": name,
-            "email": email,
-            "phone_number": phone_number,
-            "interest": interest
-        }
-        
-        # Here you might want to save this profile to a database
-        
-        dispatcher.utter_message(text=f"Thank you, {name}. I've set up your profile with the following information:")
-        dispatcher.utter_message(text=f"Email: {email}")
-        dispatcher.utter_message(text=f"Phone: {phone_number}")
-        dispatcher.utter_message(text=f"Interest: {interest}")
-        dispatcher.utter_message(text="How can I assist you further?")
-        
-        return [SlotSet("user_profile", profile)]
-
-class ActionQueryNeo4j(Action):
-    def name(self) -> Text:
-        return "action_query_neo4j"
-
-    def run(self, dispatcher: CollectingDispatcher,
-            tracker: Tracker,
-            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-        query = tracker.latest_message.get('text')
-        cypher_query = f"MATCH (n:Company) WHERE n.title CONTAINS '{query}' RETURN n.title, n.description LIMIT 5"
-        result = neo4j_conn.query(cypher_query)
-        if result:
-            dispatcher.utter_message(text="Here's what I found:")
-            for record in result:
-                dispatcher.utter_message(text=f"Company: {record['n.title']}")
-                dispatcher.utter_message(text=f"Description: {record['n.description']}")
-        else:
-            dispatcher.utter_message(text="I'm sorry, I couldn't find any information on that topic in our database.")
+        wandb.log({"action": "greet_and_lead"})
+        dispatcher.utter_message(text="Hi, I'm Crio Beaver, here to help you through your learning journey. What led you to browse through Crio?")
+        dispatcher.utter_message(buttons=[
+            {"payload": "/want_upskill", "title": "I want to upskill"},
+            {"payload": "/looking_for_job", "title": "I am looking for a job"}
+        ])
         return []
 
-class ActionDetectProfanity(Action):
+class ActionCaptureLead(Action):
     def name(self) -> Text:
-        return "action_detect_profanity"
+        return "action_capture_lead"
 
     def run(self, dispatcher: CollectingDispatcher,
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-        user_message = tracker.latest_message.get('text', '').lower()
-        # This is a very basic profanity filter. In a real application, you'd want a more comprehensive list
-        profanity_list = ['damn', 'hell', 'shit', 'fuck']
-        if any(word in user_message for word in profanity_list):
-            dispatcher.utter_message(response="utter_profanity_warning")
-            return [SlotSet("profanity_used", True)]
-        return [SlotSet("profanity_used", False)]
+        intent = tracker.latest_message['intent'].get('name')
+        wandb.log({"action": "capture_lead", "intent": intent})
+        
+        if intent in ["want_upskill", "looking_for_job"]:
+            dispatcher.utter_message(text="Thanks for sharing that. Before we dive deeper, I'd like to get to know you better. Could you please tell me your name?")
+            return [SlotSet("user_intent", intent), FollowupAction("action_capture_name")]
+        else:
+            dispatcher.utter_message(text="I'm not sure I understand. Are you looking to upskill or find a job?")
+            return [FollowupAction("action_greet_and_lead")]
 
-class ActionSaveConversation(Action):
+class ActionCaptureName(Action):
     def name(self) -> Text:
-        return "action_save_conversation"
+        return "action_capture_name"
 
     def run(self, dispatcher: CollectingDispatcher,
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-        name = tracker.get_slot("name")
+        name = next(tracker.get_latest_entity_values("name"), None)
+        wandb.log({"action": "capture_name", "name": name})
         if name:
-            directory = "User_Conversations"
-            if not os.path.exists(directory):
-                os.makedirs(directory)
-            file_path = os.path.join(directory, f"{name}_{tracker.sender_id}.json")
-            save_conversation(tracker, file_path)
-            dispatcher.utter_message(text="Your conversation has been saved. You can refer to it later if needed.")
+            dispatcher.utter_message(text=f"Nice to meet you, {name}! Could you also share your email address? This will help us keep in touch and provide you with relevant information.")
+            return [SlotSet("name", name), FollowupAction("action_capture_email")]
         else:
-            dispatcher.utter_message(text="I'm sorry, but I need your name to save the conversation. Can you provide it?")
-            return [FollowupAction("lead_form")]
-        return []
+            dispatcher.utter_message(text="I'm sorry, I didn't catch your name. Could you please tell me your name?")
+            return [FollowupAction("action_capture_name")]
 
-def save_conversation(tracker, file_path):
-    conversation = []
-    for event in tracker.events:
-        if event.get("event") == "user":
-            conversation.append({"user": event.get("text")})
-        elif event.get("event") == "bot":
-            conversation.append({"bot": event.get("text")})
-    with open(file_path, 'w') as f:
-        json.dump(conversation, f, indent=4)
+class ActionCaptureEmail(Action):
+    def name(self) -> Text:
+        return "action_capture_email"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        email = next(tracker.get_latest_entity_values("email"), None)
+        wandb.log({"action": "capture_email", "email": email})
+        if email and self.is_valid_email(email):
+            name = tracker.get_slot("name")
+            dispatcher.utter_message(text=f"Great, thank you {name}. One last thing - what's the best phone number to reach you?")
+            return [SlotSet("email", email), FollowupAction("action_capture_phone")]
+        else:
+            dispatcher.utter_message(text="I'm sorry, I didn't catch a valid email address. Could you please provide a valid email address?")
+            return [FollowupAction("action_capture_email")]
+
+    def is_valid_email(self, email):
+        pattern = r'^[\w\.-]+@[\w\.-]+\.\w+$'
+        return re.match(pattern, email) is not None
+
+class ActionCapturePhone(Action):
+    def name(self) -> Text:
+        return "action_capture_phone"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        phone = next(tracker.get_latest_entity_values("phone"), None)
+        wandb.log({"action": "capture_phone", "phone": phone})
+        if phone and self.is_valid_phone(phone):
+            name = tracker.get_slot("name")
+            dispatcher.utter_message(text=f"Thank you for providing your details, {name}. Now, let's explore how Crio can help you.")
+            return [SlotSet("phone", phone), FollowupAction("action_profile_user")]
+        else:
+            dispatcher.utter_message(text="I'm sorry, I didn't catch a valid phone number. Could you please provide a valid phone number?")
+            return [FollowupAction("action_capture_phone")]
+
+    def is_valid_phone(self, phone):
+        pattern = r'^\+?1?\d{9,15}$'
+        return re.match(pattern, phone) is not None
+
+class ActionProfileUser(Action):
+    def name(self) -> Text:
+        return "action_profile_user"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        user_intent = tracker.get_slot("user_intent")
+        wandb.log({"action": "profile_user", "user_intent": user_intent})
+        if user_intent == "looking_for_job":
+            return self.profile_job_seeker(dispatcher, tracker)
+        elif user_intent == "want_upskill":
+            return self.profile_upskiller(dispatcher, tracker)
+        else:
+            dispatcher.utter_message(text="I'm not sure what you're looking for. Could you please clarify if you're looking for a job or want to upskill?")
+            return [FollowupAction("action_greet_and_lead")]
+
+    def profile_job_seeker(self, dispatcher, tracker):
+        dispatcher.utter_message(text="I understand you're looking for a job. Let's get some more information to help you better.")
+        dispatcher.utter_message(text="What's your current work status?")
+        dispatcher.utter_message(buttons=[
+            {"payload": "/cwp", "title": "Currently Working"},
+            {"payload": "/nwp", "title": "Not Working"},
+            {"payload": "/student", "title": "Student"}
+        ])
+        return [FollowupAction("action_handle_work_status")]
+
+    def profile_upskiller(self, dispatcher, tracker):
+        dispatcher.utter_message(text="Great to hear you want to upskill! What area are you most interested in developing?")
+        dispatcher.utter_message(buttons=[
+            {"payload": "/interest_qa_automation", "title": "QA Automation"},
+            {"payload": "/interest_software_development", "title": "Software Development"}
+        ])
+        return [FollowupAction("action_handle_upskill_interest")]
+
+class ActionHandleWorkStatus(Action):
+    def name(self) -> Text:
+        return "action_handle_work_status"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        work_status = tracker.latest_message['intent'].get('name')
+        wandb.log({"action": "handle_work_status", "work_status": work_status})
+        if work_status == "cwp":
+            return self.handle_cwp(dispatcher, tracker)
+        elif work_status == "nwp":
+            return self.handle_nwp(dispatcher, tracker)
+        elif work_status == "student":
+            return self.handle_student(dispatcher, tracker)
+        else:
+            dispatcher.utter_message(text="I'm sorry, I didn't understand your work status. Could you please select one of the options?")
+            return [FollowupAction("action_profile_user")]
+
+    def handle_cwp(self, dispatcher, tracker):
+        dispatcher.utter_message(text="What's your current company name and designation?")
+        return [SlotSet("work_status", "cwp"), FollowupAction("action_capture_company_details")]
+
+    def handle_nwp(self, dispatcher, tracker):
+        dispatcher.utter_message(text="I see that you're currently not working. When did you last work, and what was your role?")
+        return [SlotSet("work_status", "nwp"), FollowupAction("action_capture_previous_job")]
+
+    def handle_student(self, dispatcher, tracker):
+        dispatcher.utter_message(text="As a student, what degree are you pursuing and when do you expect to graduate?")
+        return [SlotSet("work_status", "student"), FollowupAction("action_capture_student_details")]
+
+class ActionHandleUpskillInterest(Action):
+    def name(self) -> Text:
+        return "action_handle_upskill_interest"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        interest = tracker.latest_message['intent'].get('name')
+        wandb.log({"action": "handle_upskill_interest", "interest": interest})
+        if interest in ["interest_qa_automation", "interest_software_development"]:
+            return self.provide_course_info(dispatcher, tracker, interest)
+        else:
+            dispatcher.utter_message(text="I'm sorry, I didn't understand your interest. Could you please select one of the options?")
+            return [FollowupAction("action_profile_user")]
+
+    def provide_course_info(self, dispatcher, tracker, interest):
+        interest_area = "QA Automation" if interest == "interest_qa_automation" else "Software Development"
+        dispatcher.utter_message(text=f"Great choice! Our {interest_area} program is designed to give you hands-on experience and make you job-ready.")
+        dispatcher.utter_message(text="Would you like to know more about the curriculum or the career opportunities after completing this program?")
+        dispatcher.utter_message(buttons=[
+            {"payload": "/curriculum_info", "title": "Curriculum"},
+            {"payload": "/career_info", "title": "Career Opportunities"}
+        ])
+        return [SlotSet("interest_area", interest_area)]
+
+class ActionCaptureCompanyDetails(Action):
+    def name(self) -> Text:
+        return "action_capture_company_details"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        company = next(tracker.get_latest_entity_values("company"), None)
+        designation = next(tracker.get_latest_entity_values("designation"), None)
+        wandb.log({"action": "capture_company_details", "company": company, "designation": designation})
+        if company and designation:
+            dispatcher.utter_message(text=f"Thank you for sharing that you work at {company} as a {designation}.")
+            return [SlotSet("company", company), SlotSet("designation", designation), FollowupAction("action_handle_upskill_interest")]
+        else:
+            dispatcher.utter_message(text="I'm sorry, I didn't catch your company name or designation. Could you please provide both?")
+            return [FollowupAction("action_capture_company_details")]
+
+class ActionCapturePreviousJob(Action):
+    def name(self) -> Text:
+        return "action_capture_previous_job"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        last_job = next(tracker.get_latest_entity_values("last_job"), None)
+        last_role = next(tracker.get_latest_entity_values("last_role"), None)
+        wandb.log({"action": "capture_previous_job", "last_job": last_job, "last_role": last_role})
+        if last_job and last_role:
+            dispatcher.utter_message(text=f"I see that you previously worked at {last_job} as a {last_role}. Thank you for sharing.")
+            return [SlotSet("last_job", last_job), SlotSet("last_role", last_role), FollowupAction("action_handle_upskill_interest")]
+        else:
+            dispatcher.utter_message(text="I'm sorry, I didn't catch your previous job details. Could you please provide your last company and role?")
+            return [FollowupAction("action_capture_previous_job")]
+
+class ActionCaptureStudentDetails(Action):
+    def name(self) -> Text:
+        return "action_capture_student_details"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        degree = next(tracker.get_latest_entity_values("degree"), None)
+        graduation_year = next(tracker.get_latest_entity_values("graduation_year"), None)
+        wandb.log({"action": "capture_student_details", "degree": degree, "graduation_year": graduation_year})
+        if degree and graduation_year:
+            dispatcher.utter_message(text=f"Got it, you're pursuing a {degree} and expecting to graduate in {graduation_year}.")
+            return [SlotSet("degree", degree), SlotSet("graduation_year", graduation_year), FollowupAction("action_handle_upskill_interest")]
+        else:
+            dispatcher.utter_message(text="I'm sorry, I didn't catch your degree or graduation year. Could you please provide both?")
+            return [FollowupAction("action_capture_student_details")]
 
 class ActionHandoff(Action):
     def name(self) -> Text:
@@ -140,41 +267,77 @@ class ActionHandoff(Action):
     def run(self, dispatcher: CollectingDispatcher,
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-        dispatcher.utter_message(text="I understand that you'd like to speak with a human agent.")
-        dispatcher.utter_message(text="I'm transferring you now. Please note that our agents are available Monday to Friday, 9 AM to 5 PM EST.")
-        dispatcher.utter_message(text="If it's outside these hours, an agent will contact you as soon as possible.")
-        # Here you would typically integrate with your customer service platform
-        # For this example, we'll just set a slot to indicate the handoff was requested
-        return [SlotSet("handoff_requested", True)]
+        wandb.log({"action": "handoff"})
+        dispatcher.utter_message(text="I understand you'd like to speak with a human. I'm transferring you to one of our representatives now.")
+        # Here you would implement the logic to transfer to a human operator
+        # For example, you might send an email or create a ticket in your CRM system
+        return []
 
-class ActionProvideCourseDetails(Action):
+class ActionSaveConversation(Action):
     def name(self) -> Text:
-        return "action_provide_course_details"
+        return "action_save_conversation"
 
     def run(self, dispatcher: CollectingDispatcher,
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-        interest = tracker.get_slot("interest")
-        if interest:
-            if interest.lower() == "qa automation":
-                dispatcher.utter_message(text="Our QA Automation course covers:")
-                dispatcher.utter_message(text="1. Introduction to Test Automation")
-                dispatcher.utter_message(text="2. Selenium WebDriver")
-                dispatcher.utter_message(text="3. TestNG Framework")
-                dispatcher.utter_message(text="4. Jenkins for Continuous Integration")
-                dispatcher.utter_message(text="Duration: 12 weeks")
-                dispatcher.utter_message(text="Price: $1999")
-            elif interest.lower() == "software development":
-                dispatcher.utter_message(text="Our Software Development course covers:")
-                dispatcher.utter_message(text="1. Programming Fundamentals (Python)")
-                dispatcher.utter_message(text="2. Web Development (HTML, CSS, JavaScript)")
-                dispatcher.utter_message(text="3. Backend Development (Node.js, Express)")
-                dispatcher.utter_message(text="4. Database Management (SQL, MongoDB)")
-                dispatcher.utter_message(text="Duration: 16 weeks")
-                dispatcher.utter_message(text="Price: $2499")
-            else:
-                dispatcher.utter_message(text=f"I'm sorry, but I don't have information about courses related to {interest}.")
-                dispatcher.utter_message(text="Would you be interested in QA Automation or Software Development?")
-        else:
-            dispatcher.utter_message(text="I'm not sure what course you're interested in. Can you tell me if you're looking for information about QA Automation or Software Development?")
-        return []
+        conversation = tracker.events
+        wandb.log({"action": "save_conversation", "conversation": conversation})
+        
+        # Save conversation to Neo4j
+        try:
+            user_id = tracker.sender_id
+            name = tracker.get_slot("name")
+            email = tracker.get_slot("email")
+            phone = tracker.get_slot("phone")
+            user_intent = tracker.get_slot("user_intent")
+            interest_area = tracker.get_slot("interest_area")
+            work_status = tracker.get_slot("work_status")
+            company = tracker.get_slot("company")
+            designation = tracker.get_slot("designation")
+            last_job = tracker.get_slot("last_job")
+            last_role = tracker.get_slot("last_role")
+            degree = tracker.get_slot("degree")
+            graduation_year = tracker.get_slot("graduation_year")
+            
+            # Create a Neo4j query to save the conversation data
+            query = """
+            MERGE (u:User {user_id: $user_id})
+            SET u.name = $name, 
+                u.email = $email, 
+                u.phone = $phone, 
+                u.user_intent = $user_intent, 
+                u.interest_area = $interest_area, 
+                u.work_status = $work_status, 
+                u.company = $company, 
+                u.designation = $designation, 
+                u.last_job = $last_job, 
+                u.last_role = $last_role, 
+                u.degree = $degree, 
+                u.graduation_year = $graduation_year
+            """
+
+            parameters = {
+                "user_id": user_id,
+                "name": name,
+                "email": email,
+                "phone": phone,
+                "user_intent": user_intent,
+                "interest_area": interest_area,
+                "work_status": work_status,
+                "company": company,
+                "designation": designation,
+                "last_job": last_job,
+                "last_role": last_role,
+                "degree": degree,
+                "graduation_year": graduation_year
+            }
+
+            neo4j_conn.query(query, parameters)
+
+            dispatcher.utter_message(text="Your information has been saved successfully. Thank you!")
+            return []
+        
+        except Exception as e:
+            dispatcher.utter_message(text="There was an error saving your information. Please try again later.")
+            wandb.log({"error": str(e)})
+            return []

@@ -2,22 +2,28 @@ version: "3.1"
 
 intents:
   - greet
-  - capture_name
-  - capture_email
-  - capture_phone
-  - inquire_interest
-  - ask_course_details
+  - goodbye
+  - want_upskill
+  - looking_for_job
+  - cwp
+  - nwp
+  - student
+  - interest_qa_automation
+  - interest_software_development
+  - curriculum_info
+  - career_info
   - profanity
   - ask_human
   - thank_you
-  - goodbye
-  - start_lead_form  # Added this new intent
 
 entities:
   - name
   - email
   - phone
-  - interest
+  - company
+  - designation
+  - graduation_year
+  - degree
 
 slots:
   name:
@@ -30,61 +36,69 @@ slots:
     mappings:
       - type: from_entity
         entity: email
-  phone_number:
+  phone:
     type: text
     mappings:
       - type: from_entity
         entity: phone
-  interest:
+  user_intent:
+    type: text
+    mappings:
+      - type: custom
+  work_status:
+    type: text
+    mappings:
+      - type: custom
+  company:
     type: text
     mappings:
       - type: from_entity
-        entity: interest
-  user_profile:
-    type: any
+        entity: company
+  designation:
+    type: text
+    mappings:
+      - type: from_entity
+        entity: designation
+  graduation_year:
+    type: text
+    mappings:
+      - type: from_entity
+        entity: graduation_year
+  degree:
+    type: text
+    mappings:
+      - type: from_entity
+        entity: degree
+  interest_area:
+    type: text
     mappings:
       - type: custom
 
 responses:
   utter_greet:
     - text: "Hello! How can I assist you today?"
-  utter_ask_name:
-    - text: "May I have your name, please?"
-  utter_ask_email:
-    - text: "Can you provide your email address?"
-  utter_ask_phone:
-    - text: "What is your phone number?"
-  utter_ask_interest:
-    - text: "Are you interested in QA Automation or Software Development?"
-  utter_profanity_warning:
-    - text: "Please refrain from using inappropriate language."
-  utter_you_are_welcome:
-    - text: "You're welcome!"
   utter_goodbye:
     - text: "Goodbye! Have a great day!"
-  utter_provide_info:
-    - text: "Here is the information you requested."
-
-forms:
-  lead_form:
-    required_slots:
-      - name
-      - email
-      - phone_number
-      - interest
+  utter_profanity_warning:
+    - text: "Please refrain from using offensive language."
+  utter_you_are_welcome:
+    - text: "You're welcome!"
 
 actions:
-  - action_set_profile
-  - action_query_neo4j
-  - action_detect_profanity
-  - action_save_conversation
+  - action_greet_and_lead
+  - action_capture_lead
+  - action_capture_name
+  - action_capture_email
+  - action_capture_phone
+  - action_profile_user
+  - action_handle_work_status
+  - action_handle_upskill_interest
+  - action_capture_company_details
+  - action_capture_previous_job
+  - action_capture_student_details
   - action_handoff
-  - action_provide_course_details
-  - action_greet_and_lead  # Added this new action
+  - action_save_conversation
 
 session_config:
-  session_expiration_time: 60  # value in minutes
+  session_expiration_time: 60
   carry_over_slots_to_new_session: true
-
-config:
-  store_entities_as_slots: true

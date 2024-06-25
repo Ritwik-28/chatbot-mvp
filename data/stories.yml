@@ -1,46 +1,29 @@
 version: "3.1"
+
 stories:
-- story: Lead generation and profiling
+- story: lead capture and profile job seeker
   steps:
-  - intent: start_lead_form
-  - action: lead_form
-  - active_loop: lead_form
-  - intent: capture_name
-    entities:
-      - name: John
-  - action: utter_ask_email
-  - intent: capture_email
-    entities:
-      - email: john.doe@example.com
-  - action: utter_ask_phone
-  - intent: capture_phone
-    entities:
-      - phone: 1234567890
-  - action: utter_ask_interest
-  - intent: inquire_interest
-    entities:
-      - interest: QA Automation
-  - action: utter_provide_info
-  - active_loop: null
+  - intent: greet
+  - action: action_greet_and_lead
+  - intent: looking_for_job
+  - action: action_capture_lead
+  - action: action_capture_name
+  - action: action_capture_email
+  - action: action_capture_phone
+  - action: action_profile_user
+  - intent: cwp
+  - action: action_handle_work_status
+  # action_capture_company_details is now handled by a separate rule
 
-- story: Provide course details
+- story: lead capture and profile upskiller
   steps:
-  - intent: ask_course_details
-  - action: action_provide_course_details
-
-- story: Handle profanity
-  steps:
-  - intent: profanity
-  - action: utter_profanity_warning
-
-- story: Human handoff
-  steps:
-  - intent: ask_human
-  - action: action_handoff
-
-- story: Thank user and goodbye
-  steps:
-  - intent: thank_you
-  - action: utter_you_are_welcome
-  - intent: goodbye
-  - action: utter_goodbye
+  - intent: greet
+  - action: action_greet_and_lead
+  - intent: want_upskill
+  - action: action_capture_lead
+  - action: action_capture_name
+  - action: action_capture_email
+  - action: action_capture_phone
+  - action: action_profile_user
+  - intent: interest_qa_automation
+  - action: action_handle_upskill_interest

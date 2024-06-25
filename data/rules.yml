@@ -1,4 +1,5 @@
 version: "3.1"
+
 rules:
 - rule: Greet user
   steps:
@@ -23,19 +24,46 @@ rules:
 - rule: Goodbye
   steps:
   - intent: goodbye
-  - action: utter_goodbye
-
-- rule: Activate lead form
-  steps:
-  - intent: start_lead_form
-  - action: lead_form
-  - active_loop: lead_form
-
-- rule: Submit lead form
-  condition:
-  - active_loop: lead_form
-  steps:
-  - action: lead_form
-  - active_loop: null
   - action: action_save_conversation
   - action: utter_goodbye
+
+- rule: Capture lead for job seeker
+  steps:
+  - intent: looking_for_job
+  - action: action_capture_lead
+  - action: action_capture_name
+  - action: action_capture_email
+  - action: action_capture_phone
+  - action: action_profile_user
+
+- rule: Capture lead for upskiller
+  steps:
+  - intent: want_upskill
+  - action: action_capture_lead
+  - action: action_capture_name
+  - action: action_capture_email
+  - action: action_capture_phone
+  - action: action_profile_user
+
+- rule: Handle work status for job seeker
+  steps:
+  - action: action_profile_user
+  - or:
+    - intent: cwp
+    - intent: nwp
+    - intent: student
+  - action: action_handle_work_status
+
+- rule: Handle currently working status
+  steps:
+  - action: action_handle_work_status
+  - intent: cwp
+  - action: action_capture_company_details
+
+- rule: Handle upskill interest
+  steps:
+  - action: action_profile_user
+  - or:
+    - intent: interest_qa_automation
+    - intent: interest_software_development
+  - action: action_handle_upskill_interest
