@@ -1,4 +1,5 @@
 import re
+import socket
 import wandb
 from typing import Any, Text, Dict, List
 from rasa_sdk import Action, Tracker
@@ -9,8 +10,15 @@ from neo4j import GraphDatabase
 # Initialize wandb
 wandb.init(project="rasa-chatbot", entity="ritwikgupta28")
 
-# Neo4j setup
-neo4j_uri = "bolt://localhost:7687"
+# Function to get the IP address of the Codespace environment
+def get_ip():
+    hostname = socket.gethostname()
+    ip_address = socket.gethostbyname(hostname)
+    return ip_address
+
+# Neo4j setup with dynamic IP address
+neo4j_ip = get_ip()
+neo4j_uri = f"bolt://{neo4j_ip}:7687"
 neo4j_user = "neo4j"
 neo4j_password = "qWeRtY2*"
 
