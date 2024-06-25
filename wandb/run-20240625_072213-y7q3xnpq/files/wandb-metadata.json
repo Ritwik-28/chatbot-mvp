@@ -1,0 +1,52 @@
+{
+    "os": "Linux-6.5.0-1021-azure-x86_64-with-glibc2.31",
+    "python": "3.10.13",
+    "heartbeatAt": "2024-06-25T07:22:14.343820",
+    "startedAt": "2024-06-25T07:22:13.378970",
+    "docker": null,
+    "cuda": null,
+    "args": [
+        "run",
+        "actions"
+    ],
+    "state": "running",
+    "program": "/home/codespace/.python/current/bin/rasa",
+    "codePathLocal": null,
+    "git": {
+        "remote": "https://github.com/Ritwik-28/chatbot-mvp",
+        "commit": "dc84a926e0ad25c463ae73ebdd98bb5f9377db66"
+    },
+    "email": "43515034+Ritwik-28@users.noreply.github.com",
+    "root": "/workspaces/chatbot-mvp",
+    "host": "codespaces-8527d3",
+    "username": "codespace",
+    "executable": "/usr/local/python/3.10.13/bin/python3",
+    "cpu_count": 1,
+    "cpu_count_logical": 2,
+    "cpu_freq": {
+        "current": 3243.7439999999997,
+        "min": 0.0,
+        "max": 0.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 3243.403,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 3244.085,
+            "min": 0.0,
+            "max": 0.0
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 31.32598876953125,
+            "used": 18.393394470214844
+        }
+    },
+    "memory": {
+        "total": 7.743709564208984
+    }
+}
