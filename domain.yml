@@ -11,6 +11,7 @@ intents:
   - ask_human
   - thank_you
   - goodbye
+  - start_lead_form  # Added this new intent
 
 entities:
   - name
@@ -79,6 +80,7 @@ actions:
   - action_save_conversation
   - action_handoff
   - action_provide_course_details
+  - action_greet_and_lead  # Added this new action
 
 session_config:
   session_expiration_time: 60  # value in minutes
