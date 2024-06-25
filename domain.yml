@@ -61,6 +61,8 @@ responses:
     - text: "You're welcome!"
   utter_goodbye:
     - text: "Goodbye! Have a great day!"
+  utter_provide_info:
+    - text: "Here is the information you requested."
 
 forms:
   lead_form:
@@ -75,6 +77,8 @@ actions:
   - action_query_neo4j
   - action_detect_profanity
   - action_save_conversation
+  - action_handoff
+  - action_provide_course_details
 
 session_config:
   session_expiration_time: 60  # value in minutes
