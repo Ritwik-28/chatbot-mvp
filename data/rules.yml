@@ -3,7 +3,7 @@ rules:
 - rule: Greet user
   steps:
   - intent: greet
-  - action: utter_greet
+  - action: action_greet_and_lead
 
 - rule: Handle profanity
   steps:
@@ -23,4 +23,19 @@ rules:
 - rule: Goodbye
   steps:
   - intent: goodbye
+  - action: utter_goodbye
+
+- rule: Activate lead form
+  steps:
+  - intent: start_lead_form
+  - action: lead_form
+  - active_loop: lead_form
+
+- rule: Submit lead form
+  condition:
+  - active_loop: lead_form
+  steps:
+  - action: lead_form
+  - active_loop: null
+  - action: action_save_conversation
   - action: utter_goodbye

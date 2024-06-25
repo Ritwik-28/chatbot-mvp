@@ -2,8 +2,7 @@ version: "3.1"
 stories:
 - story: Lead generation and profiling
   steps:
-  - intent: greet
-  - action: utter_greet
+  - intent: start_lead_form
   - action: lead_form
   - active_loop: lead_form
   - intent: capture_name
@@ -23,7 +22,6 @@ stories:
       - interest: QA Automation
   - action: utter_provide_info
   - active_loop: null
-  - action: action_save_conversation
 
 - story: Provide course details
   steps:
@@ -45,29 +43,4 @@ stories:
   - intent: thank_you
   - action: utter_you_are_welcome
   - intent: goodbye
-  - action: utter_goodbye
-
-- story: Save conversation story
-  steps:
-  - intent: greet
-  - action: utter_greet
-  - action: lead_form
-  - active_loop: lead_form
-  - intent: capture_name
-    entities:
-      - name: John
-  - action: utter_ask_email
-  - intent: capture_email
-    entities:
-      - email: john.doe@example.com
-  - action: utter_ask_phone
-  - intent: capture_phone
-    entities:
-      - phone: 1234567890
-  - action: utter_ask_interest
-  - intent: inquire_interest
-    entities:
-      - interest: QA Automation
-  - action: action_save_conversation
-  - active_loop: null
   - action: utter_goodbye
