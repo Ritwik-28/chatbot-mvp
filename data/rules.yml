@@ -5,21 +5,6 @@ rules:
   - intent: greet
   - action: utter_greet
 
-- rule: Capture user details
-  steps:
-  - action: utter_ask_name
-  - intent: capture_name
-  - action: utter_ask_email
-  - intent: capture_email
-  - action: utter_ask_phone
-  - intent: capture_phone
-  - action: utter_ask_interest
-
-- rule: Understand user interest
-  steps:
-  - intent: inquire_interest
-  - action: utter_provide_info
-
 - rule: Handle profanity
   steps:
   - intent: profanity

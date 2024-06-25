@@ -49,6 +49,22 @@ stories:
   - intent: greet
   - action: utter_greet
   - action: lead_form
-  - active_loop: null
+  - active_loop: lead_form
+  - intent: capture_name
+    entities:
+      - name: John
+  - action: utter_ask_email
+  - intent: capture_email
+    entities:
+      - email: john.doe@example.com
+  - action: utter_ask_phone
+  - intent: capture_phone
+    entities:
+      - phone: 1234567890
+  - action: utter_ask_interest
+  - intent: inquire_interest
+    entities:
+      - interest: QA Automation
   - action: action_save_conversation
+  - active_loop: null
   - action: utter_goodbye
