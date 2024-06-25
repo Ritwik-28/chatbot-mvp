@@ -4,7 +4,8 @@ stories:
   steps:
   - intent: greet
   - action: utter_greet
-  - action: utter_ask_name
+  - action: lead_form
+  - active_loop: lead_form
   - intent: capture_name
     entities:
       - name: John
@@ -21,6 +22,8 @@ stories:
     entities:
       - interest: QA Automation
   - action: utter_provide_info
+  - active_loop: null
+  - action: action_save_conversation
 
 - story: Provide course details
   steps:
