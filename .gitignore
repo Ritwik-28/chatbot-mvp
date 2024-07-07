@@ -1,5 +1,6 @@
 # Ignore the output JSON file created by the spider
 company_data.json
+combined_data.json
 
 # Other files and directories to be ignored
 *.log
@@ -9,5 +10,11 @@ __pycache__/
 *.pyc
 .DS_Store
 *.gz
-.rasa
-.github
+.rasa/
+.github/
+credentials.yml
+
+# Ignore additional directories
+models/
+wandb/
+crio_scraper/
