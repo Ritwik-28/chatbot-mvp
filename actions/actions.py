@@ -24,7 +24,7 @@ neo4j_user = "neo4j"
 neo4j_password = "qWeRtY2*"
 
 # OpenAI API Key
-OPENAI_API_KEY = "sk-proj-VbnMuDWvPVEDEoYr0QGBT3BlbkFJ8lQvpK6sjUQPOaRkvAcx"
+OPENAI_API_KEY = "API_KEY"
 openai.api_key = OPENAI_API_KEY
 
 class Neo4jConnection:
