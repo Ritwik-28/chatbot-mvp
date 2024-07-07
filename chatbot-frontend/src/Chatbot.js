@@ -13,10 +13,11 @@ const Chatbot = () => {
     setMessages([...messages, newMessage]);
 
     try {
-      const response = await axios.post('http://localhost:5005/webhooks/rest/webhook', {
+      const response = await axios.post('https://symmetrical-fortnight-4wjw6g9wjpg25wrr-5005.app.github.dev/webhooks/rest/webhook', {
         sender: 'user',
         message: input
       });
+      console.log('Response data:', response.data);
       const botMessages = response.data.map(botMessage => {
         const messageText = botMessage.text;
         const youtubeUrl = extractYouTubeUrl(messageText);
@@ -57,12 +58,20 @@ const Chatbot = () => {
       <div className="chatbot-messages">
         {messages.map((msg, index) => (
           <div key={index} className={`message ${msg.sender}`}>
-            <p>{msg.message}</p>
+            {msg.sender === 'bot' ? (
+              <div>
+                <h3>Journey from BML Munjal University to Google</h3>
+                <p>{msg.message}</p>
+              </div>
+            ) : (
+              <p>{msg.message}</p>
+            )}
             {msg.youtubeUrl && (
               <div className="youtube-video">
                 <iframe
-                  width="400"
-                  height="225"
+                  title={`YouTube video ${index}`}
+                  width="560"
+                  height="315"
                   src={msg.youtubeUrl}
                   frameBorder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

@@ -27,10 +27,10 @@ def get_ip():
 neo4j_ip = get_ip()
 neo4j_uri = f"bolt://{neo4j_ip}:7687"
 neo4j_user = "neo4j"
-neo4j_password = "qWeRtY2*"
+neo4j_password = "qWeRtY2*"  # Hardcoded password
 
 # OpenAI API Key
-OPENAI_API_KEY = "API_KEY"
+OPENAI_API_KEY = "your-openai-api-key"
 openai.api_key = OPENAI_API_KEY
 
 class Neo4jConnection:
@@ -48,21 +48,29 @@ class Neo4jConnection:
 neo4j_conn = Neo4jConnection(neo4j_uri, neo4j_user, neo4j_password)
 
 def generate_response(prompt):
-    response = openai.ChatCompletion.create(
-        model="gpt-35-turbo",
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant with knowledge about Crio."},
-            {"role": "user", "content": prompt}
-        ]
-    )
-    return response['choices'][0]['message']['content']
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo-1106",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant with knowledge about Crio."},
+                {"role": "user", "content": prompt}
+            ]
+        )
+        return response.choices[0].message['content']
+    except Exception as e:
+        wandb.log({"error": str(e)})
+        return "I'm sorry, I couldn't process your request at the moment."
 
 def get_text_embedding(text):
-    response = openai.Embedding.create(
-        model="text-embedding-ada-002",
-        input=text
-    )
-    return response['data'][0]['embedding']
+    try:
+        response = openai.Embedding.create(
+            model="text-embedding-ada-002",
+            input=text
+        )
+        return response.data[0]['embedding']
+    except Exception as e:
+        wandb.log({"error": str(e)})
+        return None
 
 class ActionGreetAndLead(Action):
     def name(self) -> Text:
@@ -71,13 +79,18 @@ class ActionGreetAndLead(Action):
     def run(self, dispatcher: CollectingDispatcher,
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-        wandb.log({"action": "greet_and_lead"})
-        dispatcher.utter_message(text="Hi, I'm Crio Beaver, here to help you through your learning journey. What led you to browse through Crio?")
-        dispatcher.utter_message(buttons=[
-            {"payload": "/want_upskill", "title": "I want to upskill"},
-            {"payload": "/looking_for_job", "title": "I am looking for a job"}
-        ])
-        return []
+        try:
+            wandb.log({"action": "greet_and_lead"})
+            dispatcher.utter_message(text="Hi, I'm Crio Beaver, here to help you through your learning journey. What led you to browse through Crio?")
+            dispatcher.utter_message(buttons=[
+                {"payload": "/want_upskill", "title": "I want to upskill"},
+                {"payload": "/looking_for_job", "title": "I am looking for a job"}
+            ])
+            return []
+        except Exception as e:
+            wandb.log({"error": str(e)})
+            dispatcher.utter_message(text="Sorry, something went wrong while processing your request.")
+            return []
 
 class ActionCaptureLead(Action):
     def name(self) -> Text:
@@ -88,7 +101,7 @@ class ActionCaptureLead(Action):
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
         intent = tracker.latest_message['intent'].get('name')
         wandb.log({"action": "capture_lead", "intent": intent})
-        
+
         if intent in ["want_upskill", "looking_for_job"]:
             dispatcher.utter_message(text="Thanks for sharing that. Before we dive deeper, I'd like to get to know you better. Could you please tell me your name?")
             return [SlotSet("user_intent", intent), FollowupAction("action_capture_name")]
@@ -318,7 +331,7 @@ class ActionSaveConversation(Action):
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
         conversation = tracker.events
         wandb.log({"action": "save_conversation", "conversation": conversation})
-        
+
         # Save conversation to Neo4j
         try:
             user_id = tracker.sender_id
@@ -334,7 +347,7 @@ class ActionSaveConversation(Action):
             last_role = tracker.get_slot("last_role")
             degree = tracker.get_slot("degree")
             graduation_year = tracker.get_slot("graduation_year")
-            
+
             # Create a Neo4j query to save the conversation data
             query = """
             MERGE (u:User {user_id: $user_id})
@@ -372,7 +385,7 @@ class ActionSaveConversation(Action):
 
             dispatcher.utter_message(text="Your information has been saved successfully. Thank you!")
             return []
-        
+
         except Exception as e:
             dispatcher.utter_message(text="There was an error saving your information. Please try again later.")
             wandb.log({"error": str(e)})
@@ -390,5 +403,5 @@ class ActionDefaultFallback(Action):
         prompt = f"{context}\nUser query: {user_message}"
         response = generate_response(prompt)
         dispatcher.utter_message(text=response)
-        
+
         return []

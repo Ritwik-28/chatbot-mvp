@@ -1,7 +1,104 @@
+/* General App styling */
 .App {
   text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #1e1e1e; /* Dark background color */
 }
 
+/* Chatbot specific styling */
+.chatbot {
+  display: flex;
+  flex-direction: column;
+  height: 80vh; /* Adjusted height to fit within the app */
+  width: 60%; /* Adjusted width to fit within the app */
+  justify-content: space-between;
+  align-items: center;
+  background-color: #282c34; /* Darker background for chatbot area */
+  border: 1px solid #444; /* Border to distinguish the chatbot area */
+  border-radius: 10px; /* Rounded corners */
+  overflow: hidden; /* Prevent content overflow */
+}
+
+.chatbot-messages {
+  flex: 1;
+  width: 100%;
+  padding: 20px;
+  overflow-y: auto;
+  background-color: #1e1e1e; /* Match the app's background color */
+  color: #ffffff; /* Light text color */
+}
+
+.message {
+  margin: 10px 0;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.message.user {
+  background-color: #007bff;
+  color: #fff;
+  align-self: flex-end;
+}
+
+.message.bot {
+  background-color: #333;
+  color: #fff;
+  align-self: flex-start;
+}
+
+.message.bot p {
+  margin: 5px 0;
+}
+
+.message.bot h3 {
+  margin: 10px 0;
+  font-weight: bold;
+  color: #61dafb; /* Light blue color for headers */
+}
+
+.chatbot-input {
+  display: flex;
+  width: 100%;
+  padding: 10px;
+  border-top: 1px solid #444;
+  background-color: #282c34;
+}
+
+.chatbot-input input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #444;
+  border-radius: 5px;
+  margin-right: 10px;
+  background-color: #333;
+  color: #fff;
+}
+
+.chatbot-input button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.chatbot-input button:hover {
+  background-color: #0056b3;
+}
+
+.youtube-video {
+  margin-top: 10px;
+  width: 100%;
+  max-width: 560px;
+  height: 315px;
+}
+
+/* Other App styling */
 .App-logo {
   height: 40vmin;
   pointer-events: none;
