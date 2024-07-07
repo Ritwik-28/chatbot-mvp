@@ -2,7 +2,7 @@ import re
 import socket
 import os
 import wandb
-import openai
+from openai import OpenAI
 from typing import Any, Text, Dict, List
 from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
@@ -30,8 +30,8 @@ neo4j_user = "neo4j"
 neo4j_password = "qWeRtY2*"  # Hardcoded password
 
 # OpenAI API Key
-OPENAI_API_KEY = "your-openai-api-key"
-openai.api_key = OPENAI_API_KEY
+OPENAI_API_KEY = "API_KEY"
+client = OpenAI(api_key=OPENAI_API_KEY)
 
 class Neo4jConnection:
     def __init__(self, uri, user, password):
@@ -49,25 +49,21 @@ neo4j_conn = Neo4jConnection(neo4j_uri, neo4j_user, neo4j_password)
 
 def generate_response(prompt):
     try:
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo-1106",
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant with knowledge about Crio."},
-                {"role": "user", "content": prompt}
-            ]
-        )
-        return response.choices[0].message['content']
+        response = client.chat.completions.create(model="gpt-35-turbo",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant with knowledge about Crio."},
+            {"role": "user", "content": prompt}
+        ])
+        return response.choices[0].message.content
     except Exception as e:
         wandb.log({"error": str(e)})
         return "I'm sorry, I couldn't process your request at the moment."
 
 def get_text_embedding(text):
     try:
-        response = openai.Embedding.create(
-            model="text-embedding-ada-002",
-            input=text
-        )
-        return response.data[0]['embedding']
+        response = client.embeddings.create(model="text-embedding-ada-002",
+        input=text)
+        return response.data[0].embedding
     except Exception as e:
         wandb.log({"error": str(e)})
         return None
@@ -79,18 +75,13 @@ class ActionGreetAndLead(Action):
     def run(self, dispatcher: CollectingDispatcher,
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-        try:
-            wandb.log({"action": "greet_and_lead"})
-            dispatcher.utter_message(text="Hi, I'm Crio Beaver, here to help you through your learning journey. What led you to browse through Crio?")
-            dispatcher.utter_message(buttons=[
-                {"payload": "/want_upskill", "title": "I want to upskill"},
-                {"payload": "/looking_for_job", "title": "I am looking for a job"}
-            ])
-            return []
-        except Exception as e:
-            wandb.log({"error": str(e)})
-            dispatcher.utter_message(text="Sorry, something went wrong while processing your request.")
-            return []
+        wandb.log({"action": "greet_and_lead"})
+        dispatcher.utter_message(text="Hi, I'm Crio Beaver, here to help you through your learning journey. What led you to browse through Crio?")
+        dispatcher.utter_message(buttons=[
+            {"payload": "/want_upskill", "title": "I want to upskill"},
+            {"payload": "/looking_for_job", "title": "I am looking for a job"}
+        ])
+        return []
 
 class ActionCaptureLead(Action):
     def name(self) -> Text:
@@ -398,10 +389,20 @@ class ActionDefaultFallback(Action):
     def run(self, dispatcher: CollectingDispatcher,
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-        user_message = tracker.latest_message['text']
+        user_message = tracker.latest_message.get('text', '')
+        
+        if not user_message.strip():
+            dispatcher.utter_message(text="I didn't understand that. Can you please rephrase or provide more details?")
+            return []
+        
         context = "You are an AI assistant knowledgeable about Crio. The user asked an undefined question. Please generate a helpful response."
         prompt = f"{context}\nUser query: {user_message}"
-        response = generate_response(prompt)
-        dispatcher.utter_message(text=response)
-
+        
+        try:
+            response = generate_response(prompt)
+            dispatcher.utter_message(text=response)
+        except Exception as e:
+            wandb.log({"error": str(e), "action": "default_fallback", "user_message": user_message})
+            dispatcher.utter_message(text="I'm having trouble processing your request. Can you try asking in a different way?")
+        
         return []

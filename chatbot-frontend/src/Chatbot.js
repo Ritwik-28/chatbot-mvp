@@ -13,11 +13,17 @@ const Chatbot = () => {
     setMessages([...messages, newMessage]);
 
     try {
-      const response = await axios.post('https://symmetrical-fortnight-4wjw6g9wjpg25wrr-5005.app.github.dev/webhooks/rest/webhook', {
+      const response = await axios.post('http://127.0.0.1:5055/webhook', {
         sender: 'user',
         message: input
+      }, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
+      
       console.log('Response data:', response.data);
+      
       const botMessages = response.data.map(botMessage => {
         const messageText = botMessage.text;
         const youtubeUrl = extractYouTubeUrl(messageText);
@@ -25,9 +31,18 @@ const Chatbot = () => {
           ? { sender: 'bot', message: messageText, youtubeUrl: youtubeUrl }
           : { sender: 'bot', message: messageText };
       });
-      setMessages([...messages, newMessage, ...botMessages]);
+      
+      setMessages(prevMessages => [...prevMessages, ...botMessages]);
     } catch (error) {
       console.error('Error sending message:', error);
+      if (error.response) {
+        console.error('Response data:', error.response.data);
+        console.error('Response status:', error.response.status);
+      }
+      setMessages(prevMessages => [
+        ...prevMessages,
+        { sender: 'bot', message: "Sorry, I'm having trouble connecting. Please try again later." }
+      ]);
     }
 
     setInput('');
@@ -58,10 +73,16 @@ const Chatbot = () => {
       <div className="chatbot-messages">
         {messages.map((msg, index) => (
           <div key={index} className={`message ${msg.sender}`}>
-            {msg.sender === 'bot' ? (
+            {msg.sender === 'bot' && msg.buttons ? (
               <div>
-                <h3>Journey from BML Munjal University to Google</h3>
                 <p>{msg.message}</p>
+                <div className="button-container">
+                  {msg.buttons.map((button, btnIndex) => (
+                    <button key={btnIndex} onClick={() => setInput(button.payload)}>
+                      {button.title}
+                    </button>
+                  ))}
+                </div>
               </div>
             ) : (
               <p>{msg.message}</p>
