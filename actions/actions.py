@@ -1,6 +1,7 @@
 import re
 import socket
 import wandb
+import openai
 from typing import Any, Text, Dict, List
 from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
@@ -22,6 +23,10 @@ neo4j_uri = f"bolt://{neo4j_ip}:7687"
 neo4j_user = "neo4j"
 neo4j_password = "qWeRtY2*"
 
+# OpenAI API Key
+OPENAI_API_KEY = "sk-proj-VbnMuDWvPVEDEoYr0QGBT3BlbkFJ8lQvpK6sjUQPOaRkvAcx"
+openai.api_key = OPENAI_API_KEY
+
 class Neo4jConnection:
     def __init__(self, uri, user, password):
         self._driver = GraphDatabase.driver(uri, auth=(user, password))
@@ -35,6 +40,23 @@ class Neo4jConnection:
             return [record for record in result]
 
 neo4j_conn = Neo4jConnection(neo4j_uri, neo4j_user, neo4j_password)
+
+def generate_response(prompt):
+    response = openai.ChatCompletion.create(
+        model="gpt-35-turbo",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant with knowledge about Crio."},
+            {"role": "user", "content": prompt}
+        ]
+    )
+    return response['choices'][0]['message']['content']
+
+def get_text_embedding(text):
+    response = openai.Embedding.create(
+        model="text-embedding-ada-002",
+        input=text
+    )
+    return response['data'][0]['embedding']
 
 class ActionGreetAndLead(Action):
     def name(self) -> Text:
@@ -349,3 +371,18 @@ class ActionSaveConversation(Action):
             dispatcher.utter_message(text="There was an error saving your information. Please try again later.")
             wandb.log({"error": str(e)})
             return []
+
+class ActionDefaultFallback(Action):
+    def name(self) -> Text:
+        return "action_default_fallback"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        user_message = tracker.latest_message['text']
+        context = "You are an AI assistant knowledgeable about Crio. The user asked an undefined question. Please generate a helpful response."
+        prompt = f"{context}\nUser query: {user_message}"
+        response = generate_response(prompt)
+        dispatcher.utter_message(text=response)
+        
+        return []

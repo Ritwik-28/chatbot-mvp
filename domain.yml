@@ -98,6 +98,7 @@ actions:
   - action_capture_student_details
   - action_handoff
   - action_save_conversation
+  - action_default_fallback
 
 session_config:
   session_expiration_time: 60

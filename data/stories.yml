@@ -27,3 +27,7 @@ stories:
   - action: action_profile_user
   - intent: interest_qa_automation
   - action: action_handle_upskill_interest
+
+- story: fallback story
+  steps:
+  - action: action_default_fallback

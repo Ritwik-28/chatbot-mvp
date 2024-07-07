@@ -67,3 +67,7 @@ rules:
     - intent: interest_qa_automation
     - intent: interest_software_development
   - action: action_handle_upskill_interest
+
+- rule: Fallback
+  steps:
+  - action: action_default_fallback
