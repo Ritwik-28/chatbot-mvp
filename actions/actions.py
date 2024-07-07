@@ -1,5 +1,6 @@
 import re
 import socket
+import os
 import wandb
 import openai
 from typing import Any, Text, Dict, List
@@ -11,10 +12,15 @@ from neo4j import GraphDatabase
 # Initialize wandb
 wandb.init(project="rasa-chatbot", entity="ritwikgupta28")
 
-# Function to get the IP address of the Codespace environment
+# Function to get the IP address
 def get_ip():
-    hostname = socket.gethostname()
-    ip_address = socket.gethostbyname(hostname)
+    IS_CODESPACE = os.getenv("CODESPACES") == "true"
+    if IS_CODESPACE:
+        # Use environment variable specific to Codespaces for Neo4j IP
+        ip_address = os.getenv("CODESPACE_HOST")
+    else:
+        hostname = socket.gethostname()
+        ip_address = socket.gethostbyname(hostname)
     return ip_address
 
 # Neo4j setup with dynamic IP address

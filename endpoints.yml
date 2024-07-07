@@ -1,2 +1,2 @@
 action_endpoint:
-  url: "http://localhost:5055/webhook"
+  url: "https://symmetrical-fortnight-4wjw6g9wjpg25wrr-5055.app.github.dev/webhook"

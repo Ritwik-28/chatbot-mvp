@@ -2,3 +2,4 @@ rasa
 wandb
 scrapy
 neo4j
+openai
