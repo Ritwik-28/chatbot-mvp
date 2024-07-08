@@ -150,6 +150,8 @@ If the Rasa server is already running, stop it by pressing Ctrl+C in the termina
 
 * **Step 2:** Train Rasa Model
 
+* First, update your OpenAI API keys in [custom_message_handler.py](components/custom_message_handler.py) and [actions.py](actions/actions.py) files.
+
 Train the Rasa model with any new or updated data:
 
 ```bash
