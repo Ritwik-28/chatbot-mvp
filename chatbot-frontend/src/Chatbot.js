@@ -13,14 +13,18 @@ const Chatbot = () => {
     setMessages([...messages, newMessage]);
 
     try {
-      const response = await axios.post('http://127.0.0.1:5055/webhook', {
-        sender: 'user',
-        message: input
-      }, {
-        headers: {
-          'Content-Type': 'application/json'
+      const response = await axios.post(
+        'http://localhost:5055/webhook', 
+        {
+          sender: 'user',
+          message: input
+        }, 
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          }
         }
-      });
+      );
       
       console.log('Response data:', response.data);
       
@@ -73,19 +77,15 @@ const Chatbot = () => {
       <div className="chatbot-messages">
         {messages.map((msg, index) => (
           <div key={index} className={`message ${msg.sender}`}>
-            {msg.sender === 'bot' && msg.buttons ? (
-              <div>
-                <p>{msg.message}</p>
-                <div className="button-container">
-                  {msg.buttons.map((button, btnIndex) => (
-                    <button key={btnIndex} onClick={() => setInput(button.payload)}>
-                      {button.title}
-                    </button>
-                  ))}
-                </div>
+            <p>{msg.message}</p>
+            {msg.buttons && (
+              <div className="button-container">
+                {msg.buttons.map((button, btnIndex) => (
+                  <button key={btnIndex} onClick={() => setInput(button.payload)}>
+                    {button.title}
+                  </button>
+                ))}
               </div>
-            ) : (
-              <p>{msg.message}</p>
             )}
             {msg.youtubeUrl && (
               <div className="youtube-video">
@@ -109,7 +109,7 @@ const Chatbot = () => {
           value={input}
           onChange={handleInputChange}
           onKeyPress={handleKeyPress}
-          placeholder="Type a message..."
+          placeholder="Hi, how can we help you?"
         />
         <button onClick={sendMessage}>Send</button>
       </div>

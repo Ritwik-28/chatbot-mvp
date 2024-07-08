@@ -1,2 +1,28 @@
+# This file contains the different endpoints for the Rasa server.
+# https://rasa.com/docs/rasa/pages/http-api
+
+# Server where the models are pulled from
+models:
+  url: http://localhost:5002/api/projects/default/models/tags/production
+
+# Action server for running custom actions
 action_endpoint:
-  url: "http://127.0.0.1:5005/webhooks/rest/webhook"
+  url: "http://localhost:5055/webhook"
+
+# Tracker store configuration for Neo4j
+tracker_store:
+  type: custom
+  store_type: "tracker_store"
+  class: "rasa.core.tracker_store.Neo4jTrackerStore"
+  url: "bolt://localhost:7687"
+  username: "neo4j"
+  password: "qWeRtY2*"
+
+# Uncomment and fill in the following line to enable event broker as a way
+# to publish events to external listeners.
+# event_broker:
+#   type: "pika"  # or "kafka"
+#   url:  # host of the broker, e.g. "pika", "localhost"
+#   username:  # username used for authentication
+#   password:  # password used for authentication
+#   queue:  # the name of the queue you want to push the events to

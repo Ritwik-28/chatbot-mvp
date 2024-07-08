@@ -2,7 +2,7 @@ import re
 import socket
 import os
 import wandb
-from openai import OpenAI
+import openai
 from typing import Any, Text, Dict, List
 from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
@@ -30,8 +30,8 @@ neo4j_user = "neo4j"
 neo4j_password = "qWeRtY2*"  # Hardcoded password
 
 # OpenAI API Key
-OPENAI_API_KEY = "API_KEY"
-client = OpenAI(api_key=OPENAI_API_KEY)
+OPENAI_API_KEY = "OPENAI_API_KEY"
+openai.api_key = OPENAI_API_KEY
 
 class Neo4jConnection:
     def __init__(self, uri, user, password):
@@ -49,21 +49,25 @@ neo4j_conn = Neo4jConnection(neo4j_uri, neo4j_user, neo4j_password)
 
 def generate_response(prompt):
     try:
-        response = client.chat.completions.create(model="gpt-35-turbo",
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant with knowledge about Crio."},
-            {"role": "user", "content": prompt}
-        ])
-        return response.choices[0].message.content
+        response = openai.ChatCompletion.create(
+            model="gpt-35-turbo-1106",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant with knowledge about Crio."},
+                {"role": "user", "content": prompt}
+            ]
+        )
+        return response.choices[0].message['content'].strip()
     except Exception as e:
         wandb.log({"error": str(e)})
         return "I'm sorry, I couldn't process your request at the moment."
 
 def get_text_embedding(text):
     try:
-        response = client.embeddings.create(model="text-embedding-ada-002",
-        input=text)
-        return response.data[0].embedding
+        response = openai.Embedding.create(
+            model="text-embedding-ada-002",
+            input=text
+        )
+        return response['data'][0]['embedding']
     except Exception as e:
         wandb.log({"error": str(e)})
         return None
