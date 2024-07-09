@@ -39,7 +39,7 @@ neo4j_user = "neo4j"
 neo4j_password = "qWeRtY2*"  # Hardcoded password
 
 # OpenAI API Key
-OPENAI_API_KEY = "OPENAI_API_KEY"
+OPENAI_API_KEY = "OPENAI_API_KEY"  # Replace with your actual OpenAI API key
 openai.api_key = OPENAI_API_KEY
 
 class Neo4jConnection:
@@ -66,8 +66,15 @@ def generate_response(prompt):
             ]
         )
         return response.choices[0].message['content'].strip()
-    except Exception as e:
+    except openai.error.OpenAIError as e:
+        # Specific exception handling for OpenAI errors
         wandb.log({"error": str(e)})
+        print(f"OpenAI API Error: {e}")
+        return "I'm sorry, I couldn't process your request at the moment."
+    except Exception as e:
+        # General exception handling
+        wandb.log({"error": str(e)})
+        print(f"General Error: {e}")
         return "I'm sorry, I couldn't process your request at the moment."
 
 def get_text_embedding(text):
@@ -77,8 +84,15 @@ def get_text_embedding(text):
             input=text
         )
         return response['data'][0]['embedding']
-    except Exception as e:
+    except openai.error.OpenAIError as e:
+        # Specific exception handling for OpenAI errors
         wandb.log({"error": str(e)})
+        print(f"OpenAI API Error: {e}")
+        return None
+    except Exception as e:
+        # General exception handling
+        wandb.log({"error": str(e)})
+        print(f"General Error: {e}")
         return None
 
 @DefaultV1Recipe.register(
@@ -126,8 +140,11 @@ class CustomMessageHandler(GraphComponent):
                 messages=[{"role": "user", "content": text}]
             )
             return response.choices[0].message['content'].strip()
+        except openai.error.OpenAIError as e:
+            print(f"OpenAI API Error: {e}")
+            return "I'm sorry, but I couldn't process your request."
         except Exception as e:
-            print(f"Error with OpenAI API: {e}")
+            print(f"General Error: {e}")
             return "I'm sorry, but I couldn't process your request."
 
     def enhance_neo4j_with_embeddings(self, text: Text) -> None:
@@ -149,8 +166,11 @@ class CustomMessageHandler(GraphComponent):
                 model="text-embedding-ada-002"
             )
             return response['data'][0]['embedding']
+        except openai.error.OpenAIError as e:
+            print(f"OpenAI API Error: {e}")
+            return []
         except Exception as e:
-            print(f"Error getting text embedding: {e}")
+            print(f"General Error: {e}")
             return []
 
     @classmethod

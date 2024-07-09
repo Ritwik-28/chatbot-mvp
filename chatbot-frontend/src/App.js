@@ -1,6 +1,5 @@
 import React from 'react';
 import Chatbot from './Chatbot';
-import './App.css'; // Import the CSS file for styling
 
 function App() {
   return (

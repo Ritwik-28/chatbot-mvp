@@ -8,6 +8,14 @@ models:
 # Action server for running custom actions
 action_endpoint:
   url: "http://localhost:5055/webhook"
+  cors:
+    allow_origins:
+      - "*"
+    allow_methods:
+      - "OPTIONS"
+      - "POST"
+    allow_headers:
+      - "Content-Type"
 
 # Tracker store configuration for Neo4j
 tracker_store:

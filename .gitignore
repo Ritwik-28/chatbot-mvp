@@ -18,3 +18,4 @@ credentials.yml
 models/
 wandb/
 crio_scraper/
+node_modules
